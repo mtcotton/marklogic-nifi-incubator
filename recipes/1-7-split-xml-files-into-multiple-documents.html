@@ -213,6 +213,81 @@
         </div>
         <div class="col-md-9">
           <h1>1-7 Split XML Files Into Multiple Documents</h1>
+          <div>
+            <p>This example introduces the <b>SplitXml</b> processor to split an aggregate XML file into multiple documents. We will use the input data and URI structure of the <a href="https://docs.marklogic.com/guide/mlcp/import#id_65814">same use case</a> from the MLCP Guide. SplitXml takes a different approach to splitting XML than mlcp. With SplitXml you specify only the numeric level to split on, instead of specifying the namespace and localname of the element that will become the root element of the split documents. One means split on the children of the root, 2 means split two levels down, etc.</p>
+            <p>See the earlier <a href="1-3-extract-values-from-xml-data﻿.html">EvaluateXPath example</a> for notes on namespace support and the workaround.</p>
+
+            <ul>
+              <li><a href="templates/SplitXml.xml" download>Download Template</a></li>
+              <li>
+              Processors:
+                <ul>
+                  <li>
+                    <b>GetFile</b> – reads files from a watched directory
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Input Directory: /some/path</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>SplitXml</b> - splits XML into multiple files at the specified numeric level.
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Split Depth: 1 (default)</b></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  <li>
+                    <b>EvaluateXPath</b> - Store values from XML in FlowFile properties
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Destination:</b> flowfile-attribute</li>
+                          <li><b>last.name:</b> string(//*[local-name()='last'])  (custom property)</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Check "failure" and "unmatched" under "Automatically Terminate Relationships".</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>PutMarkLogic</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>DatabaseClient Service: (your MarkLogic DatabaseClient Service)</li>
+                          <li>URI Attribute Name: last.name</li>
+                          <li>URI Prefix: /people/</li>
+                          <li>URI Suffix: .xml</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, success</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/07-001 SplitXml.png"/>
+          </div>
         </div>
       </div>
     </div>
