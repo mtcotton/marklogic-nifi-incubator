@@ -213,6 +213,231 @@
         </div>
         <div class="col-md-9">
           <h1>1-5 Handling Multiple Types of Content</h1>
+          <div>
+            <p>If you have more than one type of content that you want to handle in a single flow, there are a few ways to do it.</p>
+            <p><b>Method 1:</b> Use either EvaluateXPath or EvaluateJsonPath to test for the first type of content. The "matched" relationship will route the matching content, "unmatched" will have content of the same type (XML/JSON) but which does not contain the specified path and the "failure" relationship will route content that is not of that type. In the example below, we route both the "unmatched" and "failure" relationships of EvaluateXPath to the EvaluateJsonPath processor.</p>
+            <p><b>Method 2:</b> Use the IdentifyMimeType processor to store the MIME type as a property, then use the RouteOnAttribute processor to send the content to separate XML and JSON handlers.</p>
+            <p><b>Method 3:</b> If file extensions are reliable, use RouteOnAttribute with route properties on filename property. e.g. XML: ${filename:endsWith('.xml')}. Flow is the same as Method 2 except that IdentityMimeType can be removed and GetFile connected directly to RouteOnAttribute.</p>
+            <div>
+              <h2>Method 1</h2>
+              <ul>
+                <li><a href="templates/Route_with_EvaluateXPath.xml" download>Download Template</a></li>
+                <li>
+                Processors:
+                  <ul>
+                    <li>
+                      <b>GetFile</b> – reads files from a watched directory
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>Input Directory: /some/path</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>EvaluateXPath</b> - Store values from XML in FlowFile properties
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li><b>Destination:</b> flowfile-attribute</li>
+                            <li><b>ml.xml.id:</b> string(/*[local-name()='message']/*[local-name()='message_xml']/*[local-name()='id']) (custom property)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Settings
+                          <ul>
+                            <li>Automatically Terminate Relationships: failure, unmatched</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>UpdateAttribute (after EvaluateXPath)</b>
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li><b>ml.uri: /messages/${ml.xml.id}.xml</b> (custom property)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>EvaluateJsonPath</b> - Store values from JSON in FlowFile properties
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>Destination: flowfile-attribute</li>
+                            <li>ml.json.id: $.id (custom property)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Settings
+                          <ul>
+                            <li>Automatically Terminate Relationships: failure, unmatched</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>UpdateAttribute (after EvaluateJsonPath)</b>
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li><b>ml.uri: /json/${ml.json.id}.xml</b> (custom property)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>PutMarkLogic</b>
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>URI Attribute Name: ml.uri</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Settings
+                          <ul>
+                            <li>Automatically Terminate Relationships: failure, unmatched</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+              <img src="../images/05-001 Route with EvaluateXPath.png"/>
+            </div>
+            <div>
+              <h2>Method 2</h2>
+              <ul>
+                <li><a href="templates/IdentifyMimeType_RouteOnAttribute.xml" download>Download Template</a></li>
+                <li>
+                Processors:
+                  <ul>
+                    <li>
+                      <b>GetFile</b> – reads files from a watched directory
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>Input Directory: /some/path</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>IdentifyMimeType</b> – stores the MIME type in the "mime.type" property
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>(none)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>RouteOnAttribute</b> – allows for creation of custom routes based on properties, such as mime.type
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li><b>ml.uri: /messages/${ml.xml.id}.xml</b> (custom property)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>EvaluateXPath</b> - Store values from XML in FlowFile properties
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>Destination: flowfile-attribute</li>
+                            <li>ml.xml.id: string(/*[local-name()='message']/*[local-name()='message_xml']/*[local-name()='id']) (custom property)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          <ul>
+                            <li>matched: UpdateAttribute (1)</li>
+                            <li>unmatched, failure: EvaluateJsonPath</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>UpdateAttribute (after EvaluateXPath)</b>
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>ml.uri: /messages/${ml.xml.id}.xml (custom property)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>EvaluateJsonPath</b> - Store values from JSON in FlowFile properties
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>Destination: flowfile-attribute</li>
+                            <li>ml.xml.id: string(/*[local-name()='message']/*[local-name()='message_xml']/*[local-name()='id']) (custom property)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Relationships
+                          <ul>
+                            <li>matched: UpdateAttribute (1)</li>
+                            <li>unmatched, failure: EvaluateJsonPath</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>UpdateAttribute (after EvaluateJsonPath)</b>
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>ml.uri: /json/${ml.json.id}.xml (custom property)</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <b>InvokeHTTP</b> – HTTP PUT to MarkLogic REST API /LATEST/documents
+                      <ul>
+                        <li>
+                          Properties
+                          <ul>
+                            <li>URI Attribute Name: ml.uri</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Settings
+                          <ul>
+                            <li>Automatically Terminate Relationships: failure, success</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+              <img src="../images/05-002 IdentifyMimeType and RouteOnAttribute.png"/>
+            </div>
+          </div>
         </div>
       </div>
     </div>
