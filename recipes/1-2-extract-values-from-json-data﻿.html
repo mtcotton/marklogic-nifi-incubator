@@ -213,6 +213,70 @@
         </div>
         <div class="col-md-9">
           <h1>1-2 Extract values from JSON data﻿</h1>
+          <div>
+            <p>This example introduces the <b>EvaluateJsonPath</b> processor and demonstrates how to extract an ID value from JSON data to use in constructing the URI.</p>
+
+            <ul>
+              <li><a href="https://youtu.be/KxMyvFd60Gw">Screencast</a> (old, using InvokeHTTP instead of PutMarkLogic)</li>
+              <li><a href="templates/EvaluateJSONPath.xml" download>Download Template</a></li>
+              <li>
+                Processors:
+                <ul>
+                  <li>
+                    <b>GetFile</b> – reads files from a watched directory
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Input Directory: /some/path</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>EvaluateJsonPath</b> - Store values from JSON in FlowFile properties
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Destination: flowfile-attribute</li>
+                          <li>ml.json.id: $.id (custom property)</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, unmatched</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>PutMarkLogic</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>DatabaseClient Service: (your MarkLogic DatabaseClient Service)</li>
+                          <li>URI Attribute Name: ml.json.id</li>
+                          <li>URI Prefix: /json/</li>
+                          <li>URI Suffix: .json</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, success</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+          </div>
+          <div>
+            <img src="../images/01-002 EvaluateJsonPath flow.png"/>
+          </div>
         </div>
       </div>
     </div>
