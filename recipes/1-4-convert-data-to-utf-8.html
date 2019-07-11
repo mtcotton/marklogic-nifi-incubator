@@ -213,6 +213,64 @@
         </div>
         <div class="col-md-9">
           <h1>1-4 Convert Data To UTF-8</h1>
+          <div>
+            <p>This example demonstrates the <b>ConvertCharacterSet</b> processor and shows how to convert data from another character set to UTF-8.</p>
+            <p>There is currently no way to automatically detect the character set. Related NiFi issues: <a href="https://issues.apache.org/jira/browse/NIFI-1874">1874</a>, <a href="https://issues.apache.org/jira/browse/NIFI-4550">4550</a>.</p>
+
+            <ul>
+              <li><a href="templates/ConvertCharacterSet.xml" download>Download Template</a></li>
+              <li>
+              Processors:
+                <ul>
+                  <li>
+                    <b>GetFile</b> – reads files from a watched directory
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Input Directory: /some/path</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>ConvertCharacterSet</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Input Character Set: Windows-1252:</b> (or whatever your content is)</li>
+                          <li><b>Output Character Set: UTF-8</b></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>PutMarkLogic</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>DatabaseClient Service: (your MarkLogic DatabaseClient Service)</li>
+                          <li>URI Attribute Name: filename</li>
+                          <li>URI Prefix: /files/</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, success</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/04-001 ConvertCharacterSet.png"/>
+          </div>
         </div>
       </div>
     </div>
