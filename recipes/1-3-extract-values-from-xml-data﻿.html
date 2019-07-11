@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -14,7 +13,7 @@
   <meta content="yes" name="apple-mobile-web-app-capable">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <!-- Favicons -->
-  <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64 96x96" href="favicon.ico">
+  <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64 96x96" href="../favicon.ico">
   <meta name="application-name" content="MarkLogic NiFi Processors - NiFi Processors for interacting with MarkLogic">
   <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -213,6 +212,72 @@
         </div>
         <div class="col-md-9">
           <h1>1-3 Extract values from XML data﻿</h1>
+          <div>
+            <p>This example introduces the EvaluateXPath processor to extract an ID value from XML data to use in constructing the URI. The XPath value is stored in a FlowFile property which is used later in InvokeHTTP to construct the document URI.</p>
+            <p>The EvaluateXPath processor currently does not support namespaces. In the ml.xml.id property below, the XPath uses a workaround to match by local-name for XML that is in a namespace.</p>
+
+            <ul>
+              <li><a href="https://issues.apache.org/jira/browse/NIFI-1023">https://issues.apache.org/jira/browse/NIFI-1023</a></li>
+              <li><a href="templates/EvaluateXPath.xml" download>Download Template</a></li>
+              <li>
+              Processors:
+                <ul>
+                  <li>
+                    <b>GetFile</b> – reads files from a watched directory
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Input Directory: /some/path</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>EvaluateXPath</b> - Store values from XML in FlowFile properties
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Destination:</b> flowfile-attribute</li>
+                          <li><b>ml.xml.id:</b> string(/*[local-name()='message']/*[local-name()='message_xml']/*[local-name()='id']) (custom property)</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, unmatched</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>PutMarkLogic</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>DatabaseClient Service: (your MarkLogic DatabaseClient Service)</li>
+                          <li>URI Attribute Name: ml.xml.id</li>
+                          <li>URI Prefix: /messages/</li>
+                          <li>URI Suffix: .xml</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, success</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/03-001 EvaluateXPath.png"/>
+          </div>
         </div>
       </div>
     </div>
