@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -213,33 +212,144 @@
         </div>
         <div class="col-md-9">
           <h1>2-3 Call a Web Service</h1>
+          <p>This example introduces the <strong>GenerateFlowFile</strong> processor and demonstrates how to consume JSON data from a paged web service. All previous examples used the GetFile processor to start the flow. GenerateFlowFile is another way to start a flow when an event-driven flow is not applicable. On GenerateFlowFile's Scheduling tab we set the Run Schedule to "1 day" so that the data from the web service is only retrieved once per day. For testing purposes, every time you stop and start the GenerateFlowFile processor, it will create one FlowFile, initiating the flow.</p>
+          <p>After the initial call to the web service, we go into a loop where we get the paging parameters returned in the response ("page" and "total_pages"), check if there are more pages to fetch with a RouteOnAttribute processor and, if there are more pages, set the web service URL to get the next page.</p>
+          <p>For each response from the web service we split the JSON on the data array, look up an ID property in the JSON, construct the MarkLogic URI then finally insert into MarkLogic.</p>
+          <ul>
+            <li><a href="templates/Call_a_Web_Service.xml">Download Template</a></li>
+            <li>Processors:
+              <ul>
+                <li><strong>GenerateFlowFile</strong>&nbsp;&ndash; starts a flow on a timer
+                  <ul>
+                    <li>Scheduling
+                      <ul>
+                        <li><strong>Run Schedule</strong>: 1 day</li>
+                        <li><strong>UpdateAttribute</strong>&nbsp;("Set Initial Service URL")</li>
+                      </ul>
+                    </li>
+                    <li>Properties
+                      <ul>
+                        <li><strong>service.url</strong>:&nbsp;<a class="external-link" href="https://reqres.in/api/users" rel="nofollow">https://reqres.in/api/users</a>&nbsp;(custom property)</li>
+                        <li><strong>service.base.url</strong>:&nbsp;<a class="external-link" href="https://reqres.in/api/users" rel="nofollow">https://reqres.in/api/users</a>&nbsp;(custom property)</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>InvokeHTTP</strong>&nbsp;("Call Example Web Service")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>Remote URL</strong>:&nbsp;${service.url}</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>EvaluateJsonPath</strong>&nbsp;("Get Response Paging Values")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>servicePage</strong>: $.page&nbsp;(custom property)</li>
+                        <li><strong>serviceTotalPages</strong>: $.total_pages&nbsp;(custom property)</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>RouteOnAttribute</strong>&nbsp;("Continue if More Pages")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>hasMorePages</strong>: ${serviceTotalPages:gt( ${servicePage} )}</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>UpdateAttribute</strong>&nbsp;("Set Paged Service URL")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>service.url</strong>:&nbsp;${"service.base.url":append('?page='):append( ${servicePage:plus(1)} )}&nbsp;</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>SplitJson</strong>&nbsp;("Split Response")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>JsonPath Expression</strong>:&nbsp;$.data.*</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>EvaluateJsonPath</strong>&nbsp;("Get ID from JSON")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>json.id</strong>: $.id</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>UpdateAttribute</strong>&nbsp;("Set MarkLogic URI")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>marklogic.uri</strong>:&nbsp;/json/${<a class="external-link" href="http://json.id/" rel="nofollow">json.id</a>}.json</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>InvokeHTTP</strong> ("PUT to MarkLogic")
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>HTTP Method: PUT</li>
+                        <li>Remote URL: http://localhost:8000/LATEST/documents?<strong>uri=${marklogic.uri}</strong></li>
+                        <li>Basic Authentication Username: youruser</li>
+                        <li>Basic Authentication Password: yourpassword</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <div>
+            <img src="../images/23-001 Call a Web Service whole flow.png"/>
+          </div>
         </div>
       </div>
     </div>
-  </article>
-  <footer class="site-footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <p>
-            Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
-          </p>
-        </div>
+  </div>
+</article>
+<footer class="site-footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <p>
+          Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
+        </p>
       </div>
     </div>
-  </footer>
-  <!--[if lt IE 9]>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
-  <script src="/nifi/js/respond.min.js"></script>
-  <![endif]-->
-  <script type="text/javascript" src="../assets//bundle.js" id="1"></script>
-  <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-79716597-1', 'auto');
-  ga('send', 'pageview');
-  </script>
+  </div>
+</footer>
+<!--[if lt IE 9]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+<script src="/nifi/js/respond.min.js"></script>
+<![endif]-->
+<script type="text/javascript" src="../assets//bundle.js" id="1"></script>
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-79716597-1', 'auto');
+ga('send', 'pageview');
+</script>
 </body>
 </html>

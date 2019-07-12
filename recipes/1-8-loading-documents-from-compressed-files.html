@@ -213,6 +213,87 @@
         </div>
         <div class="col-md-9">
           <h1>1-8 Loading Documents From Compressed Files</h1>
+          <div>
+            <p>This example demonstrates the <b>UnpackContent</b> processor and shows how to load content from one or more compressed files. In this example we use the same JSON data as in the previous JSON examples with an id property that is used to construct the URI.</p>
+
+            <ul>
+              <li><a href="templates/UnpackContent.xml" download>Download Template</a></li>
+              <li>
+              Processors:
+                <ul>
+                  <li>
+                    <b>GetFile</b> – reads files from a watched directory
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>Input Directory: /some/path</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>UnpackContent</b> – decompresses compressed files and sends each contained file matching the optional File Filter property to the next processor.
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Packaging Format: zip</b></li>
+                          <li><b>File Filter: \.json$</b></li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, original</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  <li>
+                    <b>EvaluateJsonPath</b> - Store values from JSON in FlowFile properties
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li><b>Destination:</b> flowfile-attribute</li>
+                          <li><b>ml.json.id:</b> $.id (custom property)</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, unmatched</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <b>PutMarkLogic</b>
+                    <ul>
+                      <li>
+                        Properties
+                        <ul>
+                          <li>DatabaseClient Service: (your MarkLogic DatabaseClient Service)</li>
+                          <li>URI Attribute Name: ml.json.id</li>
+                          <li>URI Prefix: /json/</li>
+                          <li>URI Suffix: .json</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Settings
+                        <ul>
+                          <li>Automatically Terminate Relationships: failure, success</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/08-001 UnpackContent.png"/>
+          </div>
         </div>
       </div>
     </div>

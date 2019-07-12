@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -213,6 +212,148 @@
         </div>
         <div class="col-md-9">
           <h1>2-3-1 Augment XML content with data from a Web Service</h1>
+          <p><strong>Thanks to Philip Fennell for contributing this recipe</strong></p>
+          <p>In the following example we will take a location name (place name) from an XHTML fragment and send a request to&nbsp;<a class="external-link" href="http://www.geonames.org/" rel="nofollow">GeoNames</a>&nbsp;to look-up the location name and return it's Latitude and Longitude to be included in the result document along with the original info in the HTML fragment.</p>
+          <p>To help set the context, but make this example more concise, it has been taken out of a larger NiFi Flow that takes a tabular list of sporting events from an HTML web page, extracts the parent table and then the table's rows before attempting to look-up each event's location in Geonames. The final XML document to be created takes other information about the event from each table row and merges the location (lat/long) data to produce a set of individual event documents for ingestion into MarkLogic. At first glance this would seem quite a simple task but unless you understand how to handle augmenting your source data with information from external services in NiFi it turns out to be less obvious than you might have thought.</p>
+          <p>The key takeaway in this example is knowing that you can direct the result of some processor steps into a Flow File attribute instead of it simply replacing the Flow File's content.</p>
+          <p>To simplify the example further, a single XHTML table row fragment, see attached and below, is retrieved from the file system.</p>
+                              <pre>
+                                    <code class="codeblock">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;tr title="Organizer:Tom Judges:Tom, Dick ,Harry, Medic:Dr. Mop" xmlns="http://www.w3.org/1999/xhtml"&gt;
+  &lt;td&gt;2018-03-24&lt;/td&gt;
+  &lt;td&gt;
+    &lt;a href="showevent.php?idCompetitions=2019"&gt;Bristol Blue 2018&lt;/a&gt;
+  &lt;/td&gt;
+  &lt;td&gt;Bristol, United Kingdom&lt;/td&gt;
+  &lt;td&gt;Pool Competition&lt;/td&gt;
+  &lt;td&gt;&amp;nbspDYN&lt;/td&gt;
+  &lt;td&gt;&amp;nbspDNF&lt;/td&gt;
+  &lt;td&gt;&amp;nbspSTA&lt;/td&gt;
+  &lt;td/&gt;
+  &lt;td/&gt;
+  &lt;td/&gt;
+&lt;/tr&gt;
+                                    </code>
+          </pre>
+          <div>
+            <ul>
+              <li><a href="templates/WebService_Integration.xml" download>Download Template</a></li>
+              <li>Processors:
+                <ul>
+                  <li>GetFile&nbsp;&ndash; starts a flow on a timer
+                    <ul>
+                      <li>Scheduling
+                        <ul>
+                          <li>Run Schedule: 1 day - (will activate, and run only once, each time the processor is started).</li>
+                        </ul>
+                      </li>
+                      <li>Properties
+                        <ul>
+                          <li>Input Directory: path to the attached&nbsp;<a href="../files/example_event.xhtml">example_event.xhtml</a>&nbsp;XHTML row fragment.</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>EvaluateXPath&nbsp;("Extract Location Name from XHTML")
+                    <ul>
+                      <li>Properties
+                        <ul>
+                          <li>Destination:flowfile-attribute</li>
+                        </ul>
+                      </li>
+                      <li>Custom attributes:
+                        <ul>
+                          <li>EventID:&nbsp;substring-after(/*:tr/*:td[2]/*:a/@href, 'idCompetitions=')</li>
+                          <li>URLEncodedLocation:&nbsp;encode-for-uri(replace(/*:tr/*:td[3], '\n', ' '))</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>InvokeHTTP&nbsp;("Search GeoNames for Location")
+                    <ul>
+                      <li>Properties
+                        <ul>
+                          <li>HTTP Method: GET</li>
+                          <li>Remote URL:&nbsp;http://api.geonames.org/search?username=geonames-username&amp;style=short&amp;type=json&amp;maxRows=1&amp;q=${URLEncodedLocation}</li>
+                          <li>* Put Response Body in Attribute: GeoNamesResponse</li>
+                          <li>Please note:&nbsp;that you will need to sign-up for a GeoNames account/username in order to use this service effectively.</li>
+                          <li>* =&gt; this is the key property in this processing step, it sends the Web Service's response into the named customer attribute so you have access to both it and the source XHTML table row fragment that you will need later. If not set, this step will only return the Web Service response and you'll no longer have the original event information available down-stream.</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>UpdateAttribute&nbsp;("Add Lat/Long as Attributes")
+                    <ul>
+                      <li>Properties
+                        <ul>
+                          <li>filename:&nbsp;${EventID}.xml</li>
+                        </ul>
+                      </li>
+                      <li>Custom properties:
+                        <ul>
+                          <li>Latitude:&nbsp;${GeoNamesResponse:jsonPath('$.geonames[0].lat')}</li>
+                          <li>Longitude:&nbsp;${GeoNamesResponse:jsonPath('$.geonames[0].lng')}</li>
+                          <li>Here we use the NiFi expression language to firstly update the&nbsp;filename&nbsp;property that originates from the&nbsp;GetFile&nbsp;processor, this will give a unique name for the resulting document.</li>
+                          <li>Secondly we get the Lat/Long info from the&nbsp;GeoNamesResponse&nbsp;Flow File Attribute by evaluating a JSONPath expression against the Web Service's response document and storing the result in the&nbsp;Latitude&nbsp;and&nbsp;Longitude&nbsp;attributes.&nbsp;</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>TransformXML&nbsp;("Create XML Document With All Data")
+                    <ul>
+                      <li>Properties
+                        <ul>
+                          <li>XSLT file name: path to the attached XSLT&nbsp;<a href="../files/event-data.xsl">transform</a>.</li>
+                        </ul>
+                      </li>
+                      <li>Custom Properties:
+                        <ul>
+                          <li>LATITUDE:&nbsp;${Latitude}</li>
+                          <li>LONGITUDE:&nbsp;${Longitude}</li>
+                          <li>These custom properties are important to the transform as the allow you to bind the Flow File attributes to XSLT transform external parameters so that the lat/long values can be accessed from within the transform.</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>PutFile&nbsp;- writes the resulting Flow Files's content to the file system.
+                    <ul>
+                      <li>Properties
+                        <ul>
+                          <li>Directory: path to the destination directory for the output result.</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/231-001 Screen Shot 2018-08-13 at 14.42.15.png"/>
+          </div>
+          <div>
+            <pre>
+              <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;event id="2019" date="2018-03-24" type="Pool Competition"&gt;
+   &lt;source href="http://www.apnearanking.se/showevent.php?idCompetitions=2019"/&gt;
+   &lt;name&gt;Bristol Blue 2018 - incorporating the UK BFA National Pool Championships&lt;/name&gt;
+   &lt;location lat="51.45523" lng="-2.59665" geonameId="2654675"&gt;
+      &lt;name&gt;Bristol, United Kingdom&lt;/name&gt;
+   &lt;/location&gt;
+   &lt;organiser&gt;Tom&lt;/organiser&gt;
+   &lt;judges&gt;
+      &lt;judge&gt;Tom&lt;/judge&gt;
+      &lt;judge&gt;Dick&lt;/judge&gt;
+      &lt;judge&gt;Harry&lt;/judge&gt;
+   &lt;/judges&gt;
+   &lt;medic&gt;Dr. Mop&lt;/medic&gt;
+   &lt;disciplines dyn="true" dnf="true" sta="true"/&gt;
+&lt;/event&gt;
+              </code>
+            </pre>
+          </div>
         </div>
       </div>
     </div>
