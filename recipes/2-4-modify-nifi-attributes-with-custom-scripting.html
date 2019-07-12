@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -213,6 +212,90 @@
         </div>
         <div class="col-md-9">
           <h1>2-4 Modify NiFi Attributes with Custom Scripting</h1>
+          <p>This example introduces the<strong>&nbsp;ExecuteScript&nbsp;</strong>processor and demonstrates how to add an attribute with a Groovy script. In our example scenario, we extract an email property from a JSON file, then run a script that calculates a SHA-1 hash of the email attribute and stores that back in a different attribute which is used to build the MarkLogic URI.</p>
+          <ul>
+            <li><a href="../files/email-hash.groovy">email-hash.groovy</a></li>
+            <li><a href="templates/EvaluateJsonPath.xml">Download Template</a></li>
+            <li>Processors:
+              <ul>
+                <li><strong>GetFile</strong>&nbsp;&ndash; reads files from a watched directory
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>Input Directory: /some/path</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>EvaluateJsonPath</strong>&nbsp;- Store values from JSON in FlowFile properties
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>Destination:&nbsp;</strong>flowfile-attribute</li>
+                        <li><strong>email:&nbsp;</strong>$.email (custom property)</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check "failure" and "unmatched" under "Automatically Terminate Relationships".&nbsp;</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>ExecuteScript</strong>
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>Script Engine:&nbsp;</strong>Groovy</li>
+                        <li><strong>Script Body:&nbsp;</strong>(paste contents of email-hash.groovy from above)</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check "failure" under "Automatically Terminate Relationships".&nbsp;</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>UpdateAttribute</strong>
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>marklogic.uri:</strong>&nbsp;/people/${emailHash}.json<strong>&nbsp;</strong>(custom property)</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>InvokeHTTP</strong>&nbsp;&ndash; HTTP PUT to MarkLogic REST API /LATEST/documents
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>HTTP Method: PUT</li>
+                        <li>Remote URL:&nbsp;&nbsp;<span class="nolink">http://localhost:8000/LATEST/documents?<strong>uri=${marklogic.uri}.json</strong></span></li>
+                        <li>Basic Authentication Username:&nbsp;youruser</li>
+                        <li>Basic Authentication Password:&nbsp;yourpassword</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <img src="../images/24-001 Custom Scripting whole flow.png"/>
+          <ul>
+            <li>More ExecuteScript examples:
+              <ul>
+                <li><a class="external-link" href="https://community.hortonworks.com/articles/75032/executescript-cookbook-part-1.html" rel="nofollow">ExecuteScript Cookbook (part 1)</a></li>
+                <li><a class="external-link" href="https://community.hortonworks.com/articles/75545/executescript-cookbook-part-2.html" rel="nofollow">ExecuteScript Cookbook (part 2)</a></li>
+                <li><a class="external-link" href="https://community.hortonworks.com/articles/77739/executescript-cookbook-part-3.html" rel="nofollow">ExecuteScript Cookbook (part 3)</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -213,6 +212,52 @@
         </div>
         <div class="col-md-9">
           <h1>2-5 Get Files by FTP</h1>
+          <p>This example uses the GetFTP processor to get a single file from an anonymous ftp server. GetFTP has options to get all of the files in a single directory matching a file pattern, or from multiple directories matching a pattern.</p>
+          <p>Note that the default properties include Delete Original: true, which will fail if you do not have permissions to delete from the ftp site. If you set Delete Original to false, you must change the Run Schedule from the default "0 sec" to some longer duration (e.g. "1 day" as below) or GetFTP will continually pull the same file(s).</p>
+          <ul>
+            <li><a href="templates/GetFTP.xml">Download Template</a></li>
+            <li>Processors:
+              <ul>
+                <li><strong>GetFTP</strong>&nbsp;&ndash; gets file(s) from FTP site
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>Hostname:&nbsp;<a class="external-link" href="http://dbprftp.state.fl.us/" rel="nofollow">dbprftp.state.fl.us</a></li>
+                        <li>Username: anonymous</li>
+                        <li>Password: (a valid email address)</li>
+                        <li>Remote Path:&nbsp;/pub/llweb</li>
+                        <li>File Filter Regex:&nbsp;HR526-DET_Violations-D4\.xml</li>
+                        <li>Delete Original: false</li>
+                      </ul>
+                    </li>
+                    <li>Scheduling
+                      <ul>
+                        <li>Run Schedule: 1 day</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>InvokeHTTP</strong>&nbsp;&ndash; HTTP PUT to MarkLogic REST API /LATEST/documents
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>HTTP Method: PUT</li>
+                        <li>Remote URL:&nbsp;&nbsp;<span class="nolink">http://localhost:8000/LATEST/documents?<strong>uri=/fl/ftp/${filename}</strong></span></li>
+                        <li>Basic Authentication Username:&nbsp;youruser</li>
+                        <li>Basic Authentication Password:&nbsp;yourpassword</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <img src="../images/25-001 GetFTP whole flow.png" />
         </div>
       </div>
     </div>

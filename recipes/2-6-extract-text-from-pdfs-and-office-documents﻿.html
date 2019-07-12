@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -213,6 +212,63 @@
         </div>
         <div class="col-md-9">
           <h1>2-6 Extract Text from PDFs and Office Documents﻿</h1>
+          <p>This example uses the ExtractTextProcessor which is not included with NiFi but was developed by Hortonworks. ExtractTextProcessor uses&nbsp;<a class="external-link" href="http://tika.apache.org/" rel="nofollow">Apache Tika</a>&nbsp;to extract the text from a wide variety of document formats.</p>
+          <p>The output from the processor can be html (XHTML) or text. I recommend the html option because it also converts the text to UTF-8. In my testing the text option produced output in a mix of character sets, UTF-8 and Windows-1252, the latter failing on ingest.&nbsp;</p>
+          <p>For the purposes of this test I downloaded the pre-built NAR file from&nbsp;<a class="external-link" href="https://github.com/tspannhw/nifi-extracttext-processor/releases/tag/html" rel="nofollow">here</a>. Drop the NAR file into the NiFi lib directory and restart. All dependencies, including Tika, are included in the NAR.</p>
+          <ul>
+            <li><a class="external-link" href="https://github.com/tspannhw/nifi-extracttext-processor" rel="nofollow">ExtractTextProcessor GitHub project</a></li>
+            <li class="kbentry-title node-title"><a class="external-link" href="https://community.hortonworks.com/articles/81694/extracttext-nifi-custom-processor-powered-by-apach.html" rel="nofollow">ExtractText NiFi Custom Processor Powered by Apache Tika</a>&nbsp;(Hortonworks Community)</li>
+            <li><a href="templates/ExtractTextProcessor.xml">Download Template</a></li>
+            <li>Processors:
+              <ul>
+                <li><strong>GetFile</strong>&nbsp;&ndash; reads files from a watched directory
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>Input Directory: /some/path</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>ExtractTextProcessor</strong>
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>HTML Output instead of text</strong>: html</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>UpdateAttribute</strong>
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li><strong>marklogic.uri</strong>:&nbsp;/${filename:replaceAll(" ", "_")}/${filename:replaceAll(" ", "_")}.html</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+                <li><strong>InvokeHTTP</strong>&nbsp;&ndash; HTTP PUT to MarkLogic REST API /LATEST/documents
+                  <ul>
+                    <li>Properties
+                      <ul>
+                        <li>HTTP Method: PUT</li>
+                        <li>Remote URL:&nbsp;&nbsp;<a class="external-link" href="http://localhost:8000/LATEST/documents?uri=${marklogic.uri" rel="nofollow">http://localhost:8000/LATEST/documents?<strong>uri=${marklogic.uri</strong></a><strong>}</strong></li>
+                        <li>Basic Authentication Username:&nbsp;youruser</li>
+                        <li>Basic Authentication Password:&nbsp;yourpassword</li>
+                      </ul>
+                    </li>
+                    <li>Settings
+                      <ul>
+                        <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <img src="../images/26-001 ExtractTextProcessor whole flow.png" />
         </div>
       </div>
     </div>
