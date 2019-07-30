@@ -21,6 +21,7 @@ This is the MarkLogic NiFi Incubator, supported by the MarkLogic community. It i
 
 The official MarkLogic fork of the Apache NiFi project ([https://github.com/marklogic/nifi]) is available and supported by MarkLogic. More information can be found at [https://developer.marklogic.com/features/apache-nifi/].
 
+# Apache NiFi
 
 [<img src="https://nifi.apache.org/assets/images/apache-nifi-logo.svg" width="300" height="126" alt="Apache NiFi"/>][nifi]
 
