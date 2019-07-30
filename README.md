@@ -13,11 +13,11 @@
   limitations under the License.
 -->
 
-# MarkLogic NiFi Incubator supported by the MarkLogic Community
+# MarkLogic NiFi Incubator
 
 This is the MarkLogic NiFi Incubator, supported by the MarkLogic community. It is forked from the MarkLogic NiFi and is intended for developers to be able to contribute to and extend the project for their needs. To learn more about the community project, and get started visit [http://marklogic-community.github.io/marklogic-nifi-incubator].
 
-# MarkLogic NiFi supported by MarkLogic
+# MarkLogic NiFi
 
 The official MarkLogic fork of the Apache NiFi project ([https://github.com/marklogic/nifi]) is available and supported by MarkLogic. More information can be found at [https://developer.marklogic.com/features/apache-nifi/].
 
