@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,6 +238,76 @@
         </div>
         <div class="col-md-9">
           <h1>2-7-4 Use ExecuteSQLToColumnMaps</h1>
+          <div>This example uses Rob Rudin's "rowtodoc" processors to read from an RDBMS in batches, convert to a "column maps" data structure, then convert that to JSON. By streaming batches of documents these processors work around the issues in the built-in processors.</div>
+          <div>
+            <a href="templates/ExecuteSQLToColumnMaps_JSON.xml">Download Template</a>
+          </div>
+          <div>
+            <h5>Processors:</h5>
+            <ul>
+              <li>Execute SQLToColumnMaps - Reads from RDBMS and writes the row data to the FlowFile as a "column map", a List&lt;Map&lt;String,Object&gt;&gt; serialized to a byte array
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Database Connection Pooling Service: (your instance of DBCPConnectionPool controller service)</li>
+                      <li>SQL query: <br /><code>SELECT <br />employees.emp_no, employees.birth_date, employees.first_name, employees.last_name,<br />employees.gender, employees.hire_date, employees.dept_emp.dept_no, employees.departments.dept_name,<br />employees.salaries.salary, employees.titles.title<br />FROM <br />employees.employees, employees.dept_emp, employees.departments, employees.salaries, employees.titles<br />WHERE <br />employees.employees.emp_no = employees.dept_emp.emp_no AND<br />employees.dept_emp.to_date &gt; CURDATE() AND<br />employees.dept_emp.dept_no = employees.departments.dept_no AND<br />employees.employees.emp_no = employees.salaries.emp_no AND<br />employees.salaries.to_date &gt; CURDATE() AND<br />employees.employees.emp_no = employees.titles.emp_no AND<br />employees.titles.to_date &gt; CURDATE()</code></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>ConvertColumnMapsToJSON - Reads the column map and converts each row to a JSON document
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>(none)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>EvaluateJsonPath - Store values from JSON in FlowFile properties
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Destination: flowfile-attribute</li>
+                      <li>emp.no: $.emp_no (custom property)</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure, unmatched</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UpdateAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>marklogic.uri: /employees/${emp.no}.json</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>PutMarkLogic
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>DatabaseClient Service: MarkLogicClientService &ndash; Localhost / Documents</li>
+                      <li>URI attribute name: marklogic.uri</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: FAILURE, SUCCESS</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/2-7-4_ExecuteSQLToColumnMaps_JSON_Flow.png"/>
+          </div>
         </div>
       </div>
     </div>

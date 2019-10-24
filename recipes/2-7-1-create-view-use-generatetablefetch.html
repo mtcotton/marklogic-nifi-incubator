@@ -239,6 +239,95 @@
         </div>
         <div class="col-md-9">
           <h1>2-7-1 Create View, use GenerateTableFetch</h1>
+          <p>In this example, I start by creating a view called employee_detail (using the SQL query on the parent page) because GenerateTableFetch can only read from a single table or view.</p>
+          <a href="templates/GenerateTableFetch.xml">Download Template</a>
+          <p>Processors:
+            <ul>
+              <li>GenerateTableFetch – queries for row count, then generates SQL statements with paging</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>Database Connection Pooling Service: DBCPConnectionPool</li>
+                  <li>Database Type: Generic</li>
+                  <li>Table Name: employee_detail</li>
+                  <li>Columns to Return: *</li>
+                </ul>
+                <li>Settings</li>
+                <ul>
+                  <li>Automatically Terminate Relationships: failure</li>
+                </ul>
+                <li>Scheduling</li>
+                <ul>
+                  <li>Run Schedule: 1 day (prevents infinitely looping)</li>
+                </ul>
+              </ul>
+              <li>ExecuteSQL</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>Database Connection Pooling Service: DBCPConnectionPool</li>
+                  <li>SQL select query: (leave this blank)</li>
+                </ul>
+              </ul>
+              <li>SplitAvro</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>(all default)</li>
+                </ul>
+                <li>Settings</li>
+                <ul>
+                  <li>Automatically Terminate Relationships: failure, original</li>
+                </ul>
+              </ul>
+              <li>ConvertAvroToJson</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>(all default)</li>
+                </ul>
+                <li>Settings</li>
+                <ul>
+                  <li>Automatically Terminate Relationships: failure</li>
+                </ul>
+              </ul>
+              <li>EvaluateJsonPath - Store values from JSON in FlowFile properties</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>Destination: flowfile-attribute</li>
+                  <li>emp.no: $.emp_no (custom property)</li>
+                </ul>
+                <li>Settings</li>
+                <ul>
+                  <li>Automatically Terminate Relationships: failure, unmatched</li>
+                </ul>
+              </ul>
+              <li>UpdateAttribute</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>marklogic.uri: /employees/${emp.no}.json</li>
+                </ul>
+              </ul>
+              <li>InvokeHTTP – HTTP PUT to MarkLogic REST API /LATEST/documents</li>
+              <ul>
+                <li>Properties</li>
+                <ul>
+                  <li>HTTP Method: PUT</li>
+                  <li>Remote URL:  http://localhost:8000/LATEST/documents?uri=${marklogic.uri}</li>
+                  <li>Basic Authentication Username: youruser</li>
+                  <li>Basic Authentication Password: yourpassword</li>
+                </ul>
+                <li>Settings</li>
+                <ul>
+                  <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                </ul>
+              </ul>
+          </p>
+          <div>
+            <img src="../images/02-007 GenerateTableFetch.png"/>
+          </div>
         </div>
       </div>
     </div>
