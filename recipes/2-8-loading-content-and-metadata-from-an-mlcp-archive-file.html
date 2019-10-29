@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,6 +238,135 @@
         </div>
         <div class="col-md-9">
           <h1>2-8 Loading Content and Metadata from an mlcp Archive File</h1>
+          <div>
+            <p>
+              This example uses the MergeContent processor to join the content and metadata files from an mlcp archive (zip) file into a single flowfile. The key to the merge is the "marklogic.uri" attribute, which is set early in the flow for both the content and metadata files. This attribute is set as the "Correlation Attribute Name" in MergeContent so that the two files are grouped together into one "bin" and merged together. Before the merge, the EvaluateXPath processor is used to parse the metadata file into attributes. The metadata XML is then removed from the flowfile content with ReplaceText so that the content of the two flow files merges cleanly.
+            </p>
+            <p>
+              MergeContent will only merge content from a single relationship queue, so a funnel is used to aggregate the metadata and content back into a single queue. I set the size of the queue between the funnel and MergeContent to be bigger than the number of documents in my test archive. (25,000) Similarly, MergeContent's "Maximum Number of Bins" should be larger than your archive size. If you are processing more than one archive at a time, these numbers might need to be even larger.
+            </p>
+          </div>
+          <div>
+            <a href="templates/Import_mlcp_archive.xml">Download Template</a>
+          </div>
+          <div>
+            <h5>Processors:</h5>
+            <ul>
+              <li>GetFile &ndash; reads files from a watched directory
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Input Directory: /some/path</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UnpackContent &ndash; decompresses the archive file
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Packaging Format: zip</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure, original</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UpdateAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>marklogic.uri: ${ path:replaceAll('\\\\', '/'):append('/'):append( ${ filename:replaceAll('\.metadata$', '') } ) }</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>RouteOnAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>isMetadata: ${filename:endsWith(".metadata")}</li>
+                      <li>isNotMetadata: ${filename:endsWith(".metadata"):not()}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>EvaluateXPath
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Destination: flowfile-attribute</li>
+                      <li>marklogic.collections: string-join(/*[local-name()='com.marklogic.contentpump.DocumentMetadata']/*[local-name()='collectionsList']/*[local-name()='string'], ',')</li>
+                      <li>marklogic.permissions: string-join(/*[local-name()='com.marklogic.contentpump.DocumentMetadata']/*[local-name()='permissionsList']/*[local-name()='string'], ',')</li>
+                      <li>marklogic.format: string(/*[local-name()='com.marklogic.contentpump.DocumentMetadata']/*[local-name()='format']/*[local-name()='name'])</li>
+                      <li>marklogic.quality: string(/*[local-name()='com.marklogic.contentpump.DocumentMetadata']/*[local-name()='quality'])</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>ReplaceText
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Search Value: (?s)^(.*)$</li>
+                      <li>Replace Value: (leave empty, check "Set empty string")</li>
+                      <li>Replacement Strategy: Always Replace</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>MergeContent
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Attribute Strategy: Keep All Unique Attributes</li>
+                      <li>Correlation Attribute Name: marklogic.uri</li>
+                      <li>Max Bin Age: 1000 days</li>
+                      <li>Maximum Number of Bins: 25000</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure, original</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>InvokeHTTP &ndash; HTTP PUT to MarkLogic REST API /LATEST/documents
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>HTTP Method: PUT</li>
+                      <li>Remote URL: http://localhost:8000/LATEST/documents?uri=${marklogic.uri}&amp;collection=${marklogic.collections}&amp;format=${marklogic.format}&amp;quality=${marklogic.quality}</li>
+                      <li>Basic Authentication Username: youruser</li>
+                      <li>Basic Authentication Password: yourpassword</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/02-008 mlcp archive flow.png"/>
+          </div>
         </div>
       </div>
     </div>

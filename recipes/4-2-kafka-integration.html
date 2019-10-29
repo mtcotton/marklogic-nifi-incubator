@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,33 +238,107 @@
         </div>
         <div class="col-md-9">
           <h1>4-2 Kafka Integration</h1>
+          <div>
+            <h5>Downloads</h5>
+            <ul>
+              <li><a href="templates/Kafka_to_MarkLogic.xml">Kafka to MarkLogic Template</a></li>
+              <li><a href="templates/MarkLogic_to_Kafka.xml">MarkLogic to Kafka Template</a></li>
+              <li><a href="data/emp107.json">emp107.json</a></li>
+              <li><a href="data/ConsumerGroup.java">ConsumerGroup.java</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5>Setup Instructions</h5>
+            <ul>
+              <li>Download and Install Kafka
+                <ul>
+                  <li>Follow steps 1 thru 5 from this link: <a href="https://kafka.apache.org/quickstart">https://kafka.apache.org/quickstart</a></li>
+                </ul>
+              </li>
+              <li>Keep ZooKeeper and Kafka Server running</li>
+              <li>Create two queues for the demo and test it
+                <ul>
+                  <li>bin/kafka-console-producer.sh --broker-list localhost:9092 --topic bankInQue</li>
+                  <li>bin/kafka-console-producer.sh --broker-list localhost:9092 --topic bankOutQue</li>
+                  <li>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic bankInQue --from-beginning</li>
+                  <li>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic bankOutQue --from-beginning</li>
+                </ul>
+              </li>
+              <li>You can kill all sessions except keep ZooKeeper and Kafka Server running</li>
+              <li>Create a Consumer Group
+                <ul>
+                  <li>Compile the java class
+                    <ul>
+                      <li>javac -cp '&hellip;&hellip;. /Apache_kafka/kafka_2.11-2.0.0/libs/*' ConsumerGroup.java</li>
+                    </ul>
+                  </li>
+                  <li>Run the consumerGroup.class
+                    <ul>
+                      <li>java -cp '/Users/mthahir/WorkSoftware/Apache_kafka/kafka_2.11-2.0.0/libs/*':. \</li>
+                      <li>ConsumerGroup bankInQue bankInQueGroup</li>
+                      <li>Note: There are several ways to create a consumer group. Make sure You can kill the java job above. We want only one consumer with the group and will be used later in ConsumeKakfa process</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>MarkLogic to Kafka
+                <ul>
+                  <li>Load the sample JSON file to MarkLogic. Give a collection name and note the collection name.</li>
+                  <li>Import the template &ldquo;MarkLogic_to_Kafka&rdquo; to NiFi</li>
+                  <li>Set the password, database name, port, etc. for QueryMarkLogic processor</li>
+                  <li>Check the query and make sure the collection name matches</li>
+                  <li>On PutKafka make sure the queue name matches</li>
+                  <li>Open a consumer for the queue to see the results</li>
+                  <li>Run the flow and you will see on the consumer window information retrieved from MarkLogic</li>
+                </ul>
+              </li>
+              <li>Kafka to MarkLogic
+                <ul>
+                  <li>Import the Kafka_to_MarkLogic template</li>
+                  <li>On ConsumeKafka processor check the queue name &ldquo;bankInQue&rdquo; and group-id &ldquo;bankInQueGroup&rdquo;</li>
+                  <li>Configure the database connection controller service for PutMarkLogic</li>
+                  <li>Open a Kafka Produce process:
+                    <ul>
+                      <li>bin/kafka-console-producer.sh --broker-list localhost:9092 --topic bankInQue</li>
+                    </ul>
+                  </li>
+                  <li>While the NiFi process running, enter the following code on Produce window:
+                    <ul>
+                      <li>185430584,5,256-44-6366052.</li>
+                      <li>Note: You are essentially putting some data to the queue to be processed. You can also open a consume window for the queue bankInQue to see results</li>
+                    </ul>
+                  </li>
+                  <li>After completion, there should be a JSON document added to the MarkLogic database</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
-  </article>
-  <footer class="site-footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <p>
-            Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
-          </p>
+    </article>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <p>
+              Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-  </footer>
-  <!--[if lt IE 9]>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
-  <script src="/nifi/js/respond.min.js"></script>
-  <![endif]-->
-  <script type="text/javascript" src="../assets//bundle.js" id="1"></script>
-  <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-79716597-1', 'auto');
-  ga('send', 'pageview');
-  </script>
-</body>
+    </footer>
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="/nifi/js/respond.min.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="../assets//bundle.js" id="1"></script>
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-79716597-1', 'auto');
+    ga('send', 'pageview');
+    </script>
+  </body>
 </html>

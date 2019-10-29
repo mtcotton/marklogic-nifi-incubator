@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,6 +238,67 @@
         </div>
         <div class="col-md-9">
           <h1>3-3 Invoke HTML Tidy on HTML Content</h1>
+          <div>
+            <p>In the situation where you have to extract information from HTML content, that is not well-formed XHTML, it is common to resort to using HTML Tidy to 'tidy' the HTML and transform it into well-formed XML. If you NiFi data flow has to process HTML(5) and you need the flexibility of XPath and/or XSLT to extract what you need then, unfortunately, NiFi does not currently come with a HTML Tidy processor. mores the petty,  but you can get around this by using the ExecuteStreamCommand processor to invoke HTML Tidy as you would do from the command-line. That said, this isn't as straightforward as you might imagine.</p>
+            <p>The main problem is that the ExecuteStreamCommand processor does not appear to handle, properly, passing arguments to the command being executed. In this case Tidy doesn't understand them. The simplest way to solve this is to create a shell script that contains the command arguments required to handle converting HTML5 into XHTML. The attached shell script defines the output to be XHTML and also declares the HTML5 elements that Tidy does not understand.</p>
+            <p><a href="scripts/html-to-xhtml.sh">Download Shell Script</a></p>
+            <p>The ExecuteStreamCommand processor directs the content of the FlowFile to STDIN and takes it's resulting content from STDOUT. When HTML Tidy is invoked without a source or destination filename it accepts input from STDIN and sends it's result to STDOUT.</p>
+          </div>
+          <div>
+            <a href="templates/Invoke_HTML_Tidy.xml">Download Template</a>
+          </div>
+          <div>
+            <br />
+            <ul>
+              <li>GetHTTP&ndash; starts a flow on a timer
+                <ul>
+                  <li>Scheduling
+                    <ul>
+                      <li>Run Schedule: 1 day - (will activate, and run only once, each time the processor is started).</li>
+                    </ul>
+                  </li>
+                  <li>Properties
+                    <ul>
+                      <li>URL: source URL for the HTML page.</li>
+                      <li>Filename: filename for the HTML page being retrieved.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>ExecuteStreamCommand ("Invoke HTML Tidy")
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Command Path: file path to the attached shell script.</li>
+                      <li>As stated above, command arguments are not accepted correctly by Tidy so we use a shell script to invoke the command with the desired aguments.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UpdateAttribute ("Update filename extension to .xhtml")
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>filename: ${filename:substringBefore('.')}.xhtml</li>
+                      <li>Just a simple but of filename munging to get the resulting file to have the correct file extension (.xhtml).</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>PutFile - writes the resulting Flow Files's content to the file system.
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Directory: path to the destination directory for the output result.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/03-003 Invoke HTML Tidy.png"/>
+          </div>
         </div>
       </div>
     </div>

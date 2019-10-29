@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -12,7 +11,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta content="yes" name="apple-mobile-web-app-capable">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-b ar-style" content="black-translucent">
   <!-- Favicons -->
   <link rel="shortcut icon" sizes="16x16 24x24 32x32 48x48 64x64 96x96" href="favicon.ico">
   <meta name="application-name" content="MarkLogic NiFi Processors - NiFi Processors for interacting with MarkLogic">
@@ -239,6 +238,55 @@
         </div>
         <div class="col-md-9">
           <h1>4-0 Export MarkLogic Database Content to the File System</h1>
+          <div>
+            <p>This example uses the QueryMarkLogic processor to query a MarkLogic database, then writes the documents to the file system with the PutFile processor. We use UpdateAttribute to set the filename and path properties based on the uri property. filename is used directly by PutFile. path is used in the Directory property to construct the output directory.</p>
+            <p>The example assumes that the MarkLogic URIs are formatted like Unix paths (/my/path/file.xml). PutFile does not allow for mixed slashes in file paths. Here we replace the forward slashes in the URI with backslashes for Windows. NiFi requires that backslashes are double escaped, hence the "\\\\".</p>
+          </div>
+          <div>
+            <a href="templates/Mirror_ML_to_File_System.xml">Download Template</a>
+          </div>
+          <div>
+            <h5>Processors:</h5>
+            <ul>
+              <li>QueryMarkLogic
+                <ul>
+                  <li>Scheduling
+                    <ul>
+                      <li>Run Schedule: 1 day</li>
+                    </ul>
+                  </li>
+                  <li>Properties
+                    <ul>
+                      <li>Query: &lt;cts:true-query xmlns:cts="http://marklogic.com/cts"/&gt;</li>
+                      <li>Query Type: Combined Query (XML)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UpdateAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>filename: ${ filename:substringAfterLast('/') }</li>
+                      <li>path: ${filename:substringBeforeLast('/'):replaceAll('/', "\\\\")}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>PutFile
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Directory: c:\some\directory${path}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/04-000 Mirror ML to File System.png"/>
+          </div>
         </div>
       </div>
     </div>

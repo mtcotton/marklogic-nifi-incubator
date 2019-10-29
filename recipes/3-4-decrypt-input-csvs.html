@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,6 +238,75 @@
         </div>
         <div class="col-md-9">
           <h1>3-4 Decrypt Input CSVs</h1>
+          <div>
+            <p>How to use Nifi to decrypt csv files encrypted with openssl aes-256-cbc and import to MarkLogic.</p>
+            <p>On a Mac, Encrypt your csv file with:</p>
+            <code>openssl enc -aes-256-cbc -e -in MOCK_DATA.csv -out MOCK_DATA.enc -k thisIsABadPassword -p</code>
+            <br /><br />
+            <p><a href="templates/Decrypt_Input_CSVs.xml">Download Template</a></p>
+            <p>In your NiFi page, upload the template.</p>
+            <div>
+              <img src="../images/03-004-01 Guide.png"/>
+            </div>
+            <p>Use the template</p>
+            <div>
+              <img src="../images/03-004-02 Guide.png"/>
+            </div>
+            <p>Select the uploaded template:</p>
+            <div>
+              <img src="../images/03-004-03 Guide.png"/>
+            </div>
+            <p>Click on the Get Input processor:</p>
+            <div>
+              <img src="../images/03-004-04 Guide.png"/>
+            </div>
+            <p>Then, configure the location and file types to watch.</p>
+            <div>
+              <img src="../images/03-004-05 Guide.png"/>
+            </div>
+            <p>Configure the Decrypt processor:</p>
+            <div>
+              <img src="../images/03-004-06 Guide.png"/>
+            </div>
+            <p>Then set the password.</p>
+            <div>
+              <img src="../images/03-004-07 Guide.png"/>
+            </div>
+            <p>Configure the Split Record Processor</p>
+            <div>
+              <img src="../images/03-004-08 Guide.png"/>
+            </div>
+            <p>Click on the right arrow</p>
+            <div>
+              <img src="../images/03-004-09 Guide.png"/>
+            </div>
+            <p>Enable the two services:</p>
+            <div>
+              <img src="../images/03-004-10 Guide.png"/>
+            </div>
+            <p>Configure the MarkLogic processor.</p>
+            <div>
+              <img src="../images/03-004-11 Guide.png"/>
+            </div>
+            <p>Configure the required fields then click on the arrow.</p>
+            <div>
+              <img src="../images/03-004-12 Guide.png"/>
+            </div>
+            <p>Make sure the service is disabled and click on the gear icon to configure it.</p>
+            <div>
+              <img src="../images/03-004-13 Guide.png"/>
+            </div>
+            <p>Set the credentials for your MarkLogic server and then enable the service.</p>
+            <div>
+              <img src="../images/03-004-14 Guide.png"/>
+            </div>
+            <p>You should have no errors and ready to click the Start button. So click it!</p>
+            <div>
+              <img src="../images/03-004-15 Guide.png"/>
+            </div>
+            <p>Now, <b>copy</b> your encrypted file to the configured watched folder. It should disappear and in a few seconds you should have those documents inserted into your MarkLogic server.</p>
+            <p>Make sure to have a backup as the Get File processor does not move the input file to a different folder.</p>
+          </div>
         </div>
       </div>
     </div>

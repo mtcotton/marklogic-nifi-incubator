@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,33 +238,86 @@
         </div>
         <div class="col-md-9">
           <h1>2-9 Load Triples</h1>
-        </div>
-      </div>
-    </div>
-  </article>
-  <footer class="site-footer">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
           <p>
-            Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
+            This example loads triples from any of the 7 <a href="https://docs.marklogic.com/guide/semantics/loading#id_70682">supported RDF triple formats</a>.
           </p>
-        </div>
-      </div>
-    </div>
-  </footer>
-  <!--[if lt IE 9]>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
-  <script src="/nifi/js/respond.min.js"></script>
-  <![endif]-->
-  <script type="text/javascript" src="../assets//bundle.js" id="1"></script>
-  <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-  ga('create', 'UA-79716597-1', 'auto');
-  ga('send', 'pageview');
-  </script>
-</body>
-</html>
+          <p>
+            I have specified the default graph (/v1/graphs?default) for all data types but you might want to change this, leaving the graph blank for quads, or routing to multiple graphs depending on your data source.
+          </p>
+          <div>
+            <a href="templates/Load_Triples.xml">Download Template</a>
+          </div>
+          <div>
+            <ul>
+              <li>GetFile &ndash; reads files from a watched directory
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Input Directory: /some/path</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>UpdateAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <ul>
+                        <li>Content-Type:
+                        <br /><code>${ filename:toLower():endsWith('.rdf'):ifElse('application/rdf+xml',<br /> ${ filename:toLower():endsWith('.ttl'):ifElse('text/turtle',<br /> ${ filename:toLower():endsWith('.json'):ifElse('application/rdf+json',<br /> ${ filename:toLower():endsWith('.n3'):ifElse('text/n3',<br /> ${ filename:toLower():endsWith('.nt'):ifElse('application/n-triples',<br /> ${ filename:toLower():endsWith('.nq'):ifElse('application/n-quads',<br /> ${ filename:toLower():endsWith('.trig'):ifElse('application/trig',<br /> 'unknown' )} )} )} )} )} )} )}</code></li>
+                      </ul>
+                    </li>
+                    <li>InvokeHTTP
+                      <ul>
+                        <li>Properties
+                          <ul>
+                            <li>HTTP Method: POST</li>
+                            <li>Remote URL: http://localhost:8000/v1/graphs?default</li>
+                            <li>Attributes to Send: Content.*</li>
+                            <li>Content-Type: ${Content-Type}</li>
+                            <li>Basic Authentication Username: youruser</li>
+                            <li>Basic Authentication Password: yourpassword</li>
+                          </ul>
+                        </li>
+                        <li>Settings
+                          <ul>
+                            <li>Check all five checkboxes under "Automatically Terminate Relationships"</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <img src="../images/02-009 triples flow.png"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <footer class="site-footer">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-12">
+                <p>
+                  Copyright © 2016-2019 MarkLogic Corporation. All Rights Reserved. MARKLOGIC® is a registered trademark of MarkLogic Corporation.
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!--[if lt IE 9]>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="/nifi/js/respond.min.js"></script>
+        <![endif]-->
+        <script type="text/javascript" src="../assets//bundle.js" id="1"></script>
+        <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-79716597-1', 'auto');
+        ga('send', 'pageview');
+        </script>
+      </body>
+    </html>
