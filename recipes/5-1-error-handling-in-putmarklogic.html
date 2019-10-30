@@ -239,6 +239,16 @@
         </div>
         <div class="col-md-9">
           <h1>5-1 Error Handling in PutMarkLogic</h1>
+          <div>
+            <p>By default PutMarkLogic writes batches of 100 documents to MarkLogic. If one document has an error on ingest, the entire batch fails and is sent to the failure relationship. This flow sends documents from PutMarkLogic's failure relationship to a second PutMarkLogic processor with a batch size of 1.</p>
+            <p>In the case of the screenshot below there were 682 documents, two of which were saved with the wrong encoding. (Windows-1252, not UTF-8) When these two documents were sent in larger batches by the first PutMarkLogic, 192 documents failed. (Two batches, not exactly 100 documents each.) After the second PutMarkLogic instance with batch size one, only the two incorrect documents are in its failure relationship queue.  The other 190 were ingested successfully.</p>
+          </div>
+          <div>
+            <a href="templates/PutMarkLogic_Error_Handling.xml">Download Template</a>
+          </div>
+          <div>
+            <img src="../images/05-001 PutMarkLogic_Error_Handling.png"/>
+          </div>
         </div>
       </div>
     </div>

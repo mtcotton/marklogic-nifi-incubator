@@ -1,4 +1,3 @@
-
 <!doctype html>
 <!--[if lt IE 7 ]><html itemscope itemtype="http://schema.org/Organization" id="ie6" class="ie ie-old" lang="en-US"><![endif]-->
 <!--[if IE 7 ]>   <html itemscope itemtype="http://schema.org/Organization" id="ie7" class="ie ie-old" lang="en-US"><![endif]-->
@@ -239,6 +238,51 @@
         </div>
         <div class="col-md-9">
           <h1>5-0 Error Handling in NiFi Flows</h1>
+          <div>Many of the example flows presented in this cookbook have auto-terminated relationships that represent error conditions, such as "failure", "unmatched", etc. Here we demonstrate a few patterns for handling those errors.</div>
+          <div>
+            <h5>Example 1: Log attributes and save content file</h5>
+            <p><a href="templates/Log_Errors_and_Save_File.xml">Download Template</a></p>
+          </div>
+          <div>
+            <p>Processors:</p>
+            <ul>
+              <li>UpdateAttribute
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>error.condition: (Your message about this error condition.)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>LogAttribute &ndash; write to nifi-app.log
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Attributes to Log: filename, error.condition (, any other attributes that are relevant to your flow and/or error condition.)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>PutFile &ndash; write error file to the file system
+                <ul>
+                  <li>Properties
+                    <ul>
+                      <li>Directory: ./error-files (or wherever you want the files to go)</li>
+                    </ul>
+                  </li>
+                  <li>Settings
+                    <ul>
+                      <li>Automatically Terminate Relationships: failure, success</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <img src="../images/05-000 Error Handling.png"/>
+          </div>
         </div>
       </div>
     </div>
